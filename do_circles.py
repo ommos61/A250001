@@ -49,8 +49,8 @@ class CirclesImage:
         self.im.show()
 
     def upload(self):
-        os.system("scp " + self.filename + " ommos.net:public_html/A250001")
-        info("Image available at http://www.ommos.net/~msmits/A250001/{}".format(self.filename))
+        os.system("scp " + self.filename + " ommos.net:public_html/OEIS_A250001")
+        info("Image available at http://www.ommos.net/~msmits/OEIS_A250001/{}".format(self.filename))
 
 #------------------------------------------------------------------------
 #  A collection of configurations
