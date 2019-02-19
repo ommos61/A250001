@@ -10,7 +10,7 @@
 #  History:
 #       2015-08-14 Martin Smits
 #               Created some initial code which only handles
-#               non-intersectinng circles
+#               non-intersecting circles
 #
 
 # modules we need
@@ -124,8 +124,13 @@ class CirclesCollection:
         if upload:
             configs_image.upload()
 
+    def create_text(self):
+        info("Create textual representations for level {}.".format(self.level()))
+        for config in self.collection:
+            info(str(config))
+
 #------------------------------------------------------------------------
-#  Representation of one circles configuration
+#  Representation of separate side-by-side elements
 #
 class CircleSet:
     def __init__(self):
@@ -137,7 +142,8 @@ class CircleSet:
         else:
             contents = "[ "
             first = True
-            for c in sorted(self.contents, cmp=lambda x, y: cmp(y.get_nesting(), x.get_nesting())):
+            for c in sorted(self.contents,
+                            cmp=lambda x, y: cmp(y.get_nesting(), x.get_nesting())):
                 if first:
                     contents += str(c)
                     first = False
@@ -196,13 +202,13 @@ class CircleSet:
         return circles
 
 #------------------------------------------------------------------------
-# Representation of a circle
+# Representation of a circle and its contents
 #
 class Circle:
     def __init__(self):
         self.contents = []
         # TODO Intersections
-        #self.intersects = []
+        self.intersects = []
 
     def __str__(self):
         if len(self.contents) == 0:
@@ -258,35 +264,48 @@ class Circle:
 #========================================================================
 # The main program
 #========================================================================
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="OEIS A250001: Number of arrangements of N circles in the affine plane")
+    parser.add_argument('circles', metavar='N', type=int, default=4, nargs='?',
+        help='the number of circles per configuration')
+    parser.add_argument('-text', dest='text', default=False, action='store_true',
+        help='output textual representations for each level')
+    parser.add_argument('-image', dest='image', default=False, action='store_true',
+        help='output images for each level')
+    parser.add_argument('-upload', dest='upload', default=False, action='store_true',
+        help='upload the image to some website')
+    parser.add_argument('-debug', dest='debug', default=False, action='store_true',
+        help='turn on some debugging output')
+    args = parser.parse_args()
+    level = args.circles
+    text = args.text
+    image = args.image
+    upload = args.upload
+    DEBUG = args.debug
 
-parser = argparse.ArgumentParser(description="Generate A250001 circles")
-parser.add_argument('circles', metavar='N', type=int, default=4, nargs='?',
-                    help='the number of circles per configuration')
-parser.add_argument('-image', dest='image', default=False, action='store_true',
-                    help='output images for each level')
-parser.add_argument('-upload', dest='upload', default=False, action='store_true',
-                    help='upload the image to some website')
-parser.add_argument('-debug', dest='debug', default=False, action='store_true',
-                    help='turn on some debugging output')
-args = parser.parse_args()
-level = args.circles
-image = args.image
-upload = args.upload
-DEBUG = args.debug
+    # TODO: intersections
+    print "NOTE: intersecting cicles are not yet implemented."
 
-collections = [ CirclesCollection.new(0) ]
-collections[0].add(CircleSet())
+    # Create the initial configuration with no circles
+    collections = [ CirclesCollection.new(0) ]
+    collections[0].add(CircleSet())
 
-for i in range(level):
-    c_new = collections[len(collections) - 1].next_level()
-    collections.append(c_new)
+    # now create the next level until the reuqested one is reached
+    for i in range(level):
+        c_new = collections[len(collections) - 1].next_level()
+        collections.append(c_new)
 
 
-print "{:10} {:10}".format("Level", "Count")
-for c in collections:
-    if c.level() > 0:
-        print "{:<10} {:<10}".format(c.level(), c.count())
-for c in collections:
-    if c.level() > 0:
-        if image:
-            c.create_image(upload)
+    # output overview of the number of configurations per level
+    print "{:10} {:10}".format("Level", "Count")
+    for c in collections:
+        if c.level() >= 0:
+            print "{:<10} {:<10}".format(c.level(), c.count())
+    # if requested, generate the textual and/or the image representation
+    for c in collections:
+        if c.level() >= 0:
+            if image:
+                c.create_image(upload)
+            if text:
+                c.create_text();
